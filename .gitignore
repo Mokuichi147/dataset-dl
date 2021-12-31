@@ -1,0 +1,7 @@
+# file
+/poetry.lock
+
+# folder
+/__pycache__/
+/build/
+/dist/
