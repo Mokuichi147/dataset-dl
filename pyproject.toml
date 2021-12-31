@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "dataset-dl"
+version = "0.1.0"
+description = ""
+authors = ["Mokuichi147 <38586357+Mokuichi147@users.noreply.github.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.6,<3.11"
+pytube = {git = "https://github.com/pytube/pytube"}
+ffmpeg-python = "^0.2.0"
+dearpygui = "^1.1.3"
+pyperclip = "^1.8.2"
+
+[tool.poetry.dev-dependencies]
+pytest = "^5.2"
+pyinstaller = "^4.7"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
