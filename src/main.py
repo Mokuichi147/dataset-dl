@@ -1,14 +1,12 @@
 from concurrent.futures import ALL_COMPLETED, ThreadPoolExecutor, as_completed
 import dearpygui.dearpygui as dpg
-import extruct
-import utilio
-from os import remove
 from os.path import isfile, isdir, join
 import pyperclip
 from tempfile import gettempdir
-from tkinter import Tk
-from tkinter.filedialog import askdirectory, askopenfilename
 from traceback import print_exc
+
+import extruct
+import utilio
 
 from pytube import YouTube, Playlist
 import ffmpeg
@@ -21,41 +19,42 @@ TEMPDIR = join(gettempdir(), APPNAME)
 MAXWOREKR = 20
 
 
+
 def check_save_dir():
     dpg.set_value('save_dir_check', isdir(dpg.get_value('save_dir_path')))
 
+
 def save_dir_dialog():
-    _root = Tk()
-    _root.withdraw()
-    save_dir = askdirectory()
+    save_dir = utilio.ask_directry()
     if save_dir != '':
         dpg.set_value('save_dir_path', save_dir)
     
     check_save_dir()
-    _root.destroy()
+
 
 def check_csv_path():
     csv_path = dpg.get_value('load_csv_path')
     dpg.set_value('csv_path_check', isfile(csv_path) and csv_path.lower().endswith('.csv'))
 
+
 def load_csv_dialog():
-    _root = Tk()
-    _root.withdraw()
-    load_csv = askopenfilename(filetypes=[('', '.csv')])
+    load_csv = utilio.ask_open_file([('', '.csv')])
     if load_csv != '':
         dpg.set_value('load_csv_path', load_csv)
     
     check_csv_path()
-    _root.destroy()
+
 
 def check_url():
     url_str = dpg.get_value('url')
     is_url = extruct.get_video_id(url_str) != '' or extruct.get_playlist_id(url_str) != ''
     dpg.set_value('url_check', is_url)
 
+
 def paste_url():
     dpg.set_value('url', pyperclip.paste())
     check_url()
+
 
 def run_url():
     if not (dpg.get_value('save_dir_check') and dpg.get_value('url_check')):
@@ -72,9 +71,11 @@ def run_url():
         for task in as_completed(tasks):
             pass
 
+
 def set_progress(stream, chunk, bytes_remaining):
     stream_id = extruct.file_hash(f'{stream.title}_{stream.filesize}')
     dpg.set_value(stream_id, 1 - bytes_remaining / stream.filesize)
+
 
 def download(video_url):
     yt = YouTube(video_url, on_progress_callback=set_progress)
@@ -140,10 +141,11 @@ def download(video_url):
         file_name = f'{join(dpg.get_value("save_dir_path"), extruct.file_name(stream_video.title))}.{extension}'
         marge_stream = ffmpeg.output(vi, au, file_name, vcodec='copy', acodec='copy').global_args('-loglevel', 'quiet')
         ffmpeg.run(marge_stream, overwrite_output=True)
-        remove(f'{join(TEMPDIR, stream_vid)}.{extension}')
-        remove(f'{join(TEMPDIR, stream_aid)}.{extension}')
+        utilio.delete_file(f'{join(TEMPDIR, stream_vid)}.{extension}')
+        utilio.delete_file(f'{join(TEMPDIR, stream_aid)}.{extension}')
     except:
         print_exc()
+
 
 def download_stream(stream, output_path, extension, filename=None):
     stream_id = extruct.file_hash(f'{stream.title}_{stream.filesize}')
@@ -156,6 +158,7 @@ def download_stream(stream, output_path, extension, filename=None):
         stream.download(output_path=output_path, filename=filename)
     except:
         print_exc()
+
 
 
 with dpg.font_registry():
