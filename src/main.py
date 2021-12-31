@@ -1,10 +1,10 @@
 from concurrent.futures import ALL_COMPLETED, ThreadPoolExecutor, as_completed
 import dearpygui.dearpygui as dpg
 import extruct
-from os import mkdir, remove
-from os.path import exists, isfile, isdir, join
+import utilio
+from os import remove
+from os.path import isfile, isdir, join
 import pyperclip
-from shutil import rmtree
 from tempfile import gettempdir
 from tkinter import Tk
 from tkinter.filedialog import askdirectory, askopenfilename
@@ -20,12 +20,6 @@ APPNAME = 'dataset-dl'
 TEMPDIR = join(gettempdir(), APPNAME)
 MAXWOREKR = 20
 
-def create_temp():
-    if not exists(TEMPDIR):
-        mkdir(TEMPDIR)
-    else:
-        rmtree(TEMPDIR)
-        mkdir(TEMPDIR)
 
 def check_save_dir():
     dpg.set_value('save_dir_check', isdir(dpg.get_value('save_dir_path')))
@@ -56,7 +50,7 @@ def load_csv_dialog():
 
 def check_url():
     url_str = dpg.get_value('url')
-    is_url = extruct.video_id(url_str) != '' or extruct.playlist_id(url_str) != ''
+    is_url = extruct.get_video_id(url_str) != '' or extruct.get_playlist_id(url_str) != ''
     dpg.set_value('url_check', is_url)
 
 def paste_url():
@@ -68,10 +62,10 @@ def run_url():
         return
     
     input_url = dpg.get_value('url')
-    if extruct.playlist_id(input_url) != '':
+    if extruct.get_playlist_id(input_url) != '':
         video_urls = Playlist(input_url).video_urls
     else:
-        video_urls = ['https://www.youtube.com/watch?v=' + extruct.video_id(input_url)]
+        video_urls = ['https://www.youtube.com/watch?v=' + extruct.get_video_id(input_url)]
     
     with ThreadPoolExecutor(max_workers=MAXWOREKR) as executor:
         tasks = [executor.submit(download, video_url) for video_url in video_urls]
@@ -213,7 +207,7 @@ with dpg.window(tag='Primary Window'):
 
 
 
-create_temp()
+utilio.create_workdir(TEMPDIR)
 
 dpg.create_viewport(title='dataset-dl', width=800, height=500, large_icon=extruct.get_fullpath(join('resources', 'dataset-dl.ico')))
 dpg.setup_dearpygui()
@@ -222,4 +216,4 @@ dpg.set_primary_window('Primary Window', True)
 dpg.start_dearpygui()
 dpg.destroy_context()
 
-rmtree(TEMPDIR)
+utilio.delete_workdir(TEMPDIR)
