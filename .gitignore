@@ -2,6 +2,6 @@
 /poetry.lock
 
 # folder
-/__pycache__/
+/**/__pycache__/
 /build/
 /dist/
