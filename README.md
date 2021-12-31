@@ -23,12 +23,12 @@ poetry install
 
 Linux or MacOS    
 ```
-poetry run dataset_dl/main.py
+poetry run src/main.py
 ```
 
 Windows 10 or 11
 ```
-poetry run python.exe dataset_dl/main.py
+poetry run python.exe src/main.py
 ```
 
 

@@ -4,10 +4,10 @@ block_cipher = None
 from os import getcwd
 from os.path import join
 
-a = Analysis([join('dataset_dl','main.py')],
+a = Analysis([join('src','main.py')],
              pathex=[getcwd()],
              binaries=[],
-             datas=[(join('dataset_dl','extruct.py'), '.'),
+             datas=[(join('src','extruct.py'), '.'),
                     (join('resources','fonts','NotoSansJP-Regular.otf'), join('resources','fonts')),
                     (join('resources','fonts','OFL.txt'), join('resources','fonts')),
                     (join('resources','dataset-dl.ico'), 'resources')],
