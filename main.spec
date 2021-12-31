@@ -1,15 +1,16 @@
 # -*- mode: python ; coding: utf-8 -*-
 
 block_cipher = None
-import os
+from os import getcwd
+from os.path import join
 
-a = Analysis(['dataset_dl\\main.py'],
-             pathex=[os.getcwd()],
+a = Analysis([join('dataset_dl','main.py')],
+             pathex=[getcwd()],
              binaries=[],
-             datas=[('dataset_dl\\extruct.py', '.'),
-                    ('resources\\fonts\\NotoSansJP-Regular.otf','resources\\fonts'),
-                    ('resources\\fonts\\OFL.txt','resources\\fonts'),
-                    ('resources\\dataset-dl.ico', 'resources')],
+             datas=[(join('dataset_dl','extruct.py'), '.'),
+                    (join('resources','fonts','NotoSansJP-Regular.otf'), join('resources','fonts')),
+                    (join('resources','fonts','OFL.txt'), join('resources','fonts')),
+                    (join('resources','dataset-dl.ico'), 'resources')],
              hiddenimports=['pywintypes'],
              hookspath=[],
              runtime_hooks=[],
@@ -34,4 +35,4 @@ exe = EXE(pyz,
           upx=False,
           upx_exclude=[],
           runtime_tmpdir=None,
-          console=False , icon='resources\\dataset-dl.ico')
+          console=False , icon=join('resources','dataset-dl.ico'))
