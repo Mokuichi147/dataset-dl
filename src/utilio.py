@@ -3,10 +3,10 @@ from os.path import isfile, isdir
 from shutil import rmtree
 from tkinter import Tk
 from tkinter.filedialog import askdirectory, askopenfilename
-from typing import List, Tuple
+from typing import List, NoReturn, Tuple
 
 
-def create_workdir(work_directory: str) -> None:
+def create_workdir(work_directory: str) -> NoReturn:
     # Set up a working directory.
     if not isdir(work_directory):
         mkdir(work_directory)
@@ -15,12 +15,12 @@ def create_workdir(work_directory: str) -> None:
         mkdir(work_directory)
 
 
-def delete_workdir(work_directory: str) -> None:
+def delete_workdir(work_directory: str) -> NoReturn:
     if not isdir(work_directory):
         rmtree(work_directory)
 
 
-def delete_file(filepath: str) -> None:
+def delete_file(filepath: str) -> NoReturn:
     if isfile(filepath):
         remove(filepath)
 
