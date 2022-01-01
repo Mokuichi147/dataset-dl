@@ -23,7 +23,7 @@ poetry install
 
 Linux or MacOS    
 ```
-poetry run src/main.py
+poetry run python src/main.py
 ```
 
 Windows 10 or 11
