@@ -126,15 +126,17 @@ def download(video_url):
     dpg.delete_item(f'{stream_video_id}_group')
     dpg.delete_item(f'{stream_audio_id}_group')
     
+    video_temp_path = f'{join(TEMPDIR, stream_video_id)}.{quality_mode.extension_video}'
+    audio_temp_path = f'{join(TEMPDIR, stream_audio_id)}.{quality_mode.extension_audio}'
     try:
-        video = ffmpeg.input(f'{join(TEMPDIR, stream_video_id)}.{quality_mode.extension_video}')
-        audio = ffmpeg.input(f'{join(TEMPDIR, stream_audio_id)}.{quality_mode.extension_audio}')
-        file_name = f"{join(dpg.get_value('save_dir_path'), extruct.file_name(stream_video.title))}.{quality_mode.extension_video}"
-        marge_stream = ffmpeg.output(video, audio, file_name, vcodec='copy', acodec='copy').global_args('-loglevel', 'quiet')
+        video = ffmpeg.input(video_temp_path)
+        audio = ffmpeg.input(audio_temp_path)
+        save_path = f"{join(dpg.get_value('save_dir_path'), extruct.file_name(stream_video.title))}.{quality_mode.extension_video}"
+        marge_stream = ffmpeg.output(video, audio, save_path, vcodec='copy', acodec='copy').global_args('-loglevel', 'quiet')
         ffmpeg.run(marge_stream, overwrite_output=True)
         
-        utilio.delete_file(f'{join(TEMPDIR, stream_video_id)}.{quality_mode.extension_video}')
-        utilio.delete_file(f'{join(TEMPDIR, stream_audio_id)}.{quality_mode.extension_audio}')
+        utilio.delete_file(video_temp_path)
+        utilio.delete_file(audio_temp_path)
     except:
         print_exc()
 
