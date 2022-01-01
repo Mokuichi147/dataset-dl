@@ -1,5 +1,9 @@
 # dataset-dl
 
+<p align="center">
+    <img src="https://user-images.githubusercontent.com/38586357/147847093-95ffbfed-6ea6-4f42-9e2d-192913b5acf7.png" alt="dataset-dl App" width="500px">
+</p>
+
 GUI software to download video and audio.
 To download a data set in CSV format.
 
@@ -11,7 +15,7 @@ To download a data set in CSV format.
 
 ## Installation
 
-```
+```sh
 pip install --upgrade pip
 pip install --upgrade setuptools
 pip install --upgrade poetry
@@ -22,7 +26,7 @@ poetry install
 ## Usage
 
 Linux or MacOS    
-```
+```sh
 poetry run python src/main.py
 ```
 
