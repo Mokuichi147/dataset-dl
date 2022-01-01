@@ -3,6 +3,7 @@ name = "dataset-dl"
 version = "0.1.0"
 description = ""
 authors = ["Mokuichi147 <38586357+Mokuichi147@users.noreply.github.com>"]
+license = "MIT OR Apache-2.0"
 
 [tool.poetry.dependencies]
 python = "^3.6,<3.11"
