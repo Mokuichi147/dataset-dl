@@ -19,6 +19,7 @@ APPNAME = 'dataset-dl'
 TEMPDIR = join(gettempdir(), APPNAME)
 MAXWOREKR = 20
 
+TAGS = []
 
 
 def check_save_dir():
@@ -34,14 +35,14 @@ def save_dir_dialog():
 
 
 def check_csv_path():
-    csv_path = dpg.get_value('load_csv_path')
+    csv_path = dpg.get_value('csv_path')
     dpg.set_value('csv_path_check', isfile(csv_path) and csv_path.lower().endswith('.csv'))
 
 
 def load_csv_dialog():
     load_csv = utilio.ask_open_file([('', '.csv')])
     if load_csv != '':
-        dpg.set_value('load_csv_path', load_csv)
+        dpg.set_value('csv_path', load_csv)
     
     check_csv_path()
 
@@ -57,8 +58,19 @@ def paste_url():
     check_url()
 
 
+def lock_ui():
+    for tag in TAGS:
+        dpg.configure_item(tag, enabled=False)
+
+def unlock_ui():
+    for tag in TAGS:
+        dpg.configure_item(tag, enabled=True)
+
+
 def run_url():
+    lock_ui()
     if not (dpg.get_value('save_dir_check') and dpg.get_value('url_check')):
+        unlock_ui()
         return
     
     input_url = dpg.get_value('url')
@@ -71,6 +83,7 @@ def run_url():
         tasks = [executor.submit(download, video_url) for video_url in video_urls]
         for task in as_completed(tasks):
             pass
+    unlock_ui()
 
 
 def set_progress(stream, chunk, bytes_remaining):
@@ -178,7 +191,9 @@ with dpg.window(tag='Primary Window'):
     with dpg.group(horizontal=True):
         dpg.add_checkbox(default_value=False, enabled=False, tag='save_dir_check')
         dpg.add_input_text(callback=check_save_dir, tag='save_dir_path')
-        dpg.add_button(label='Select', callback=save_dir_dialog)
+        dpg.add_button(label='Select', tag='save_dir_button', callback=save_dir_dialog)
+        TAGS.append('save_dir_path')
+        TAGS.append('save_dir_button')
     dpg.add_spacer(height=10)
     
     dpg.add_text('Quality')
@@ -188,6 +203,7 @@ with dpg.window(tag='Primary Window'):
         default_value = core.QualityMode.HIGH.text,
         horizontal = True
         )
+    TAGS.append('quality_radio')
     dpg.add_spacer(height=10)
     
     dpg.add_text('Mode')
@@ -196,14 +212,19 @@ with dpg.window(tag='Primary Window'):
             with dpg.group(horizontal=True):
                 dpg.add_checkbox(default_value=False, enabled=False, tag='url_check')
                 dpg.add_input_text(callback=check_url, tag='url')
-                dpg.add_button(label='Paste', callback=paste_url)
-                dpg.add_button(label='Run', callback=run_url)
+                dpg.add_button(label='Paste', tag='url_paste_button', callback=paste_url)
+                dpg.add_button(label='Run', tag='url_run_button', callback=run_url)
+                TAGS.append('url')
+                TAGS.append('url_paste_button')
+                TAGS.append('url_run_button')
             
         with dpg.tab(label='CSV File'):
             with dpg.group(horizontal=True):
                 dpg.add_checkbox(default_value=False, enabled=False, tag='csv_path_check')
-                dpg.add_input_text(callback=check_csv_path, tag='load_csv_path')
-                dpg.add_button(label='Select', callback=load_csv_dialog)
+                dpg.add_input_text(callback=check_csv_path, tag='csv_path')
+                dpg.add_button(label='Select', tag='csv_path_button', callback=load_csv_dialog)
+                TAGS.append('csv_path')
+                TAGS.append('csv_path_button')
 
 
 
