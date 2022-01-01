@@ -212,7 +212,7 @@ with dpg.window(tag='Primary Window'):
 
 utilio.create_workdir(TEMPDIR)
 
-dpg.create_viewport(title='dataset-dl', width=800, height=500, large_icon=extruct.get_fullpath(join('resources', 'dataset-dl.ico')))
+dpg.create_viewport(title=APPNAME, width=800, height=500, large_icon=extruct.get_fullpath(join('resources', 'dataset-dl.ico')))
 dpg.setup_dearpygui()
 dpg.show_viewport()
 dpg.set_primary_window('Primary Window', True)

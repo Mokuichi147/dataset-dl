@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "dataset-dl"
-version = "0.1.0"
+version = "0.1.1"
 description = ""
 authors = ["Mokuichi147 <38586357+Mokuichi147@users.noreply.github.com>"]
 license = "MIT OR Apache-2.0"
