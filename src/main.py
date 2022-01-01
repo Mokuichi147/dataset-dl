@@ -5,6 +5,7 @@ import pyperclip
 from tempfile import gettempdir
 from traceback import print_exc
 
+import core
 import extruct
 import utilio
 
@@ -79,70 +80,61 @@ def set_progress(stream, chunk, bytes_remaining):
 
 def download(video_url):
     yt = YouTube(video_url, on_progress_callback=set_progress)
-    download_type = dpg.get_value('quality_radio')
+    quality_mode = core.get_qualitymode(dpg.get_value('quality_radio'))
     
-    stream_video = None
-    stream_audio = None
-    iswebm = False
-    if download_type == '' or download_type == 'High':
-        stream_video = yt.streams.filter(only_video=True, subtype='mp4').order_by('resolution').desc().first()
-        stream_audio = yt.streams.filter(only_audio=True, subtype='mp4').desc().first()
-    elif download_type == 'Low':
-        stream_video = yt.streams.filter(only_video=True, subtype='mp4').order_by('resolution').first()
-        stream_audio = yt.streams.filter(only_audio=True, subtype='mp4').first()
-    elif download_type == 'High 60fps':
-        stream_video = yt.streams.filter(only_video=True, subtype='mp4').filter(fps=60).order_by('resolution').desc().first()
-        if stream_video == None:
-            stream_video = yt.streams.filter(only_video=True, subtype='mp4').order_by('resolution').desc().first()
-        stream_audio = yt.streams.filter(only_audio=True, subtype='mp4').desc().first()
-    elif download_type == 'High webm':
-        stream_video = yt.streams.filter(only_video=True, subtype='webm').order_by('resolution').desc().first()
-        stream_audio = yt.streams.filter(only_audio=True, subtype='webm').desc().first()
-        if stream_video == None:
-            stream_video = yt.streams.filter(only_video=True, subtype='mp4').order_by('resolution').desc().first()
-            stream_audio = yt.streams.filter(only_audio=True, subtype='mp4').desc().first()
-        else:
-            iswebm = True
-    elif download_type == 'Audio mp4':
-        stream_audio = yt.streams.filter(only_audio=True, subtype='mp4').desc().first()
-    elif download_type == 'Audio opus':
-        stream_audio = yt.streams.filter(only_audio=True, subtype='webm').desc().first()
+    stream_video = core.get_video_stream(yt, quality_mode)
+    stream_audio = core.get_audio_stream(yt, quality_mode)
     
-    stream_vid = ''
-    if stream_video != None:
-        stream_vid = extruct.file_hash(f'{stream_video.title}_{stream_video.filesize}')
-    stream_aid = extruct.file_hash(f'{stream_audio.title}_{stream_audio.filesize}')
-    with ThreadPoolExecutor(max_workers=MAXWOREKR*2) as executor:
-        tasks = []
-        if iswebm:
-            tasks.append(executor.submit(download_stream, stream_video, TEMPDIR, 'webm'))
-            tasks.append(executor.submit(download_stream, stream_audio, TEMPDIR, 'webm'))
-        elif stream_video != None:
-            tasks.append(executor.submit(download_stream, stream_video, TEMPDIR, 'mp4'))
-            tasks.append(executor.submit(download_stream, stream_audio, TEMPDIR, 'mp4'))
-        else:
-            extension = 'opus' if download_type == 'Audio opus' else 'mp4'
-            tasks.append(executor.submit(download_stream, stream_audio, dpg.get_value('save_dir_path'), f'{extension}', filename=f'{extruct.file_name(stream_audio.title)}.{extension}'))
+    if not quality_mode.is_audio:
+        return
+    stream_audio_id = extruct.file_hash(f'{stream_audio.title}_{stream_audio.filesize}')
+    
+    if not quality_mode.is_video:
+        with ThreadPoolExecutor(max_workers=MAXWOREKR*2) as executor:
+            tasks = []
+            tasks.append(executor.submit(
+                    download_stream,
+                    stream_audio,
+                    dpg.get_value('save_dir_path'),
+                    quality_mode.extension_audio,
+                    filename = extruct.file_name(stream_audio.title)
+                ))
             for task in as_completed(tasks):
                 pass
-            dpg.delete_item(f'{stream_aid}_group')
+            dpg.delete_item(f'{stream_audio_id}_group')
             return
+    
+    stream_video_id = extruct.file_hash(f'{stream_video.title}_{stream_video.filesize}')
+    
+    with ThreadPoolExecutor(max_workers=MAXWOREKR*2) as executor:
+        tasks = []
+        tasks.append(executor.submit(
+                download_stream,
+                stream_video,
+                TEMPDIR,
+                quality_mode.extension_video
+            ))
+        tasks.append(executor.submit(
+                download_stream,
+                stream_audio,
+                TEMPDIR,
+                quality_mode.extension_audio
+            ))
         for task in as_completed(tasks):
             pass
     
-    if stream_video != None:
-        dpg.delete_item(f'{stream_vid}_group')
-    dpg.delete_item(f'{stream_aid}_group')
+    dpg.delete_item(f'{stream_video_id}_group')
+    dpg.delete_item(f'{stream_audio_id}_group')
     
     try:
-        extension = 'webm' if iswebm else 'mp4'
-        vi = ffmpeg.input(f'{join(TEMPDIR, stream_vid)}.{extension}')
-        au = ffmpeg.input(f'{join(TEMPDIR, stream_aid)}.{extension}')
-        file_name = f'{join(dpg.get_value("save_dir_path"), extruct.file_name(stream_video.title))}.{extension}'
-        marge_stream = ffmpeg.output(vi, au, file_name, vcodec='copy', acodec='copy').global_args('-loglevel', 'quiet')
+        video = ffmpeg.input(f'{join(TEMPDIR, stream_video_id)}.{quality_mode.extension_video}')
+        audio = ffmpeg.input(f'{join(TEMPDIR, stream_audio_id)}.{quality_mode.extension_audio}')
+        file_name = f"{join(dpg.get_value('save_dir_path'), extruct.file_name(stream_video.title))}.{quality_mode.extension_video}"
+        marge_stream = ffmpeg.output(video, audio, file_name, vcodec='copy', acodec='copy').global_args('-loglevel', 'quiet')
         ffmpeg.run(marge_stream, overwrite_output=True)
-        utilio.delete_file(f'{join(TEMPDIR, stream_vid)}.{extension}')
-        utilio.delete_file(f'{join(TEMPDIR, stream_aid)}.{extension}')
+        
+        utilio.delete_file(f'{join(TEMPDIR, stream_video_id)}.{quality_mode.extension_video}')
+        utilio.delete_file(f'{join(TEMPDIR, stream_audio_id)}.{quality_mode.extension_audio}')
     except:
         print_exc()
 
@@ -151,6 +143,8 @@ def download_stream(stream, output_path, extension, filename=None):
     stream_id = extruct.file_hash(f'{stream.title}_{stream.filesize}')
     if filename == None:
         filename = f'{stream_id}.{extension}'
+    else:
+        filename = f'{filename}.{extension}'
     dpg.add_group(tag=f'{stream_id}_group', parent='url_tab', horizontal=True)
     dpg.add_progress_bar(tag=stream_id, parent=f'{stream_id}_group')
     dpg.add_text(stream.title, tag=f'{stream_id}_text', parent=f'{stream_id}_group')
@@ -187,8 +181,9 @@ with dpg.window(tag='Primary Window'):
     
     dpg.add_text('Quality')
     dpg.add_radio_button(
-        ('High', 'Low', 'High 60fps', 'High webm', 'Audio mp4', 'Audio opus'),
+        [quality_mode.text for quality_mode in core.QualityMode],
         tag = 'quality_radio',
+        default_value = core.QualityMode.HIGH.text,
         horizontal = True
         )
     dpg.add_spacer(height=10)
