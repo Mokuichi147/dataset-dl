@@ -46,7 +46,7 @@ class QualityMode(Enum):
             is_video = True,
             is_audio = True,
             extension_video = 'webm',
-            extension_audio = 'opus'
+            extension_audio = 'webm'
         )
     AMP4 = Quality(
             text = 'Audio mp4',
@@ -98,7 +98,7 @@ def get_qualitymode(text: str) -> Optional[QualityMode]:
             return quality_mode
 
 
-def get_requesttype(text: str) -> Optional[str]:
+def get_request_type(text: str) -> Optional[str]:
     if text == 'mp4':
         return text
     elif text == 'opus' or text == 'webm':
@@ -109,7 +109,7 @@ def get_video_stream(yt: YouTube, quality_mode: QualityMode) -> Optional[Stream]
     if not quality_mode.is_video:
         return None
     
-    request_type = get_requesttype(quality_mode.extension_video)
+    request_type = get_request_type(quality_mode.extension_video)
     stream_query = yt.streams.filter(only_video=True, subtype=request_type)
     
     if quality_mode == QualityMode.LOW:
@@ -127,7 +127,7 @@ def get_audio_stream(yt: YouTube, quality_mode: QualityMode) -> Optional[Stream]
     if not quality_mode.is_audio:
         return None
     
-    request_type = get_requesttype(quality_mode.extension_audio)
+    request_type = get_request_type(quality_mode.extension_audio)
     stream_query = yt.streams.filter(only_audio=True, subtype=request_type)
     
     if quality_mode == QualityMode.LOW:

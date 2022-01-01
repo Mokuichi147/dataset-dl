@@ -103,19 +103,37 @@ def download(video_url):
     stream_audio_id = extruct.file_hash(f'{stream_audio.title}_{stream_audio.filesize}')
     
     if not quality_mode.is_video:
+        request_type = core.get_request_type(quality_mode.extension_audio)
+        save_path = TEMPDIR if quality_mode == core.QualityMode.OPUS else dpg.get_value('save_dir_path')
+        file_name = None    if quality_mode == core.QualityMode.OPUS else extruct.file_name(stream_audio.title)
+        
         with ThreadPoolExecutor(max_workers=MAXWOREKR*2) as executor:
             tasks = []
             tasks.append(executor.submit(
                     download_stream,
                     stream_audio,
-                    dpg.get_value('save_dir_path'),
-                    quality_mode.extension_audio,
-                    filename = extruct.file_name(stream_audio.title)
+                    save_path,
+                    request_type,
+                    filename = file_name
                 ))
             for task in as_completed(tasks):
                 pass
-            dpg.delete_item(f'{stream_audio_id}_group')
+        dpg.delete_item(f'{stream_audio_id}_group')
+        
+        if quality_mode != core.QualityMode.OPUS:
             return
+        
+        try:
+            audio_temp_path = f'{join(TEMPDIR, stream_audio_id)}.{request_type}'
+            audio = ffmpeg.input(audio_temp_path)
+            save_path = f"{join(dpg.get_value('save_dir_path'), extruct.file_name(stream_audio.title))}.{quality_mode.extension_audio}"
+            marge_stream = ffmpeg.output(audio, save_path, acodec='copy').global_args('-loglevel', 'quiet')
+            ffmpeg.run(marge_stream, overwrite_output=True)
+
+            utilio.delete_file(audio_temp_path)
+        except:
+            print_exc()
+        return
     
     stream_video_id = extruct.file_hash(f'{stream_video.title}_{stream_video.filesize}')
     
