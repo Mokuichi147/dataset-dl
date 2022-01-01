@@ -1,11 +1,11 @@
 # dataset-dl
 
+GUI software to download video and audio.
+To download a data set in CSV format.
+
 <p align="center">
     <img src="https://user-images.githubusercontent.com/38586357/147847093-95ffbfed-6ea6-4f42-9e2d-192913b5acf7.png" alt="dataset-dl App" width="500px">
 </p>
-
-GUI software to download video and audio.
-To download a data set in CSV format.
 
 
 ## Requirement
