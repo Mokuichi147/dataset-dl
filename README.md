@@ -15,7 +15,7 @@ To download a data set in CSV format.
 
 ## Installation
 
-```sh
+```
 pip install --upgrade pip
 pip install --upgrade setuptools
 pip install --upgrade poetry
@@ -26,7 +26,7 @@ poetry install
 ## Usage
 
 Linux or MacOS    
-```sh
+```
 poetry run python src/main.py
 ```
 
