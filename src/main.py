@@ -201,9 +201,7 @@ with dpg.window(tag='Primary Window'):
     with dpg.menu_bar():
         with dpg.menu(label='License'):
             dpg.add_text('NotoSansJP-Regular')
-            dpg.add_input_text(default_value=font_license,
-                               multiline=True,
-                               readonly=True)
+            dpg.add_input_text(default_value=font_license, multiline=True, readonly=True)
     
     dpg.add_text('Save Directory')
     with dpg.group(horizontal=True):
