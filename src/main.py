@@ -2,6 +2,7 @@ from concurrent.futures import ALL_COMPLETED, ThreadPoolExecutor, as_completed
 import dearpygui.dearpygui as dpg
 from os.path import isfile, isdir, join
 import pyperclip
+import sys
 from tempfile import gettempdir
 from traceback import print_exc
 
@@ -245,8 +246,9 @@ with dpg.window(tag='Primary Window'):
 
 
 utilio.create_workdir(TEMPDIR)
+icon = extruct.get_fullpath(join('resources', 'dataset-dl.ico')) if sys.platform == 'win32' else ''
 
-dpg.create_viewport(title=APPNAME, width=800, height=500, large_icon=extruct.get_fullpath(join('resources', 'dataset-dl.ico')))
+dpg.create_viewport(title=APPNAME, width=1000, height=500, large_icon=icon)
 dpg.setup_dearpygui()
 dpg.show_viewport()
 dpg.set_primary_window('Primary Window', True)
