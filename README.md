@@ -6,11 +6,13 @@ To download a data set in CSV format.
 <p align="center">
     <img src="https://user-images.githubusercontent.com/38586357/147847093-95ffbfed-6ea6-4f42-9e2d-192913b5acf7.png" alt="dataset-dl App" width="500px">
 </p>
+<br>
 
 
 ## Requirement
 
-* [FFmpeg](https://ffmpeg.org/)
+* [FFmpeg](https://ffmpeg.org/)  
+<br>
 
 
 ## Installation
@@ -21,6 +23,7 @@ pip install --upgrade setuptools
 pip install --upgrade poetry
 poetry install
 ```
+<br>
 
 
 ## Usage
@@ -34,6 +37,7 @@ Windows 10 or 11
 ```
 poetry run python.exe src/main.py
 ```
+<br>
 
 
 ## Build
@@ -41,37 +45,42 @@ poetry run python.exe src/main.py
 ```
 poetry run pyinstaller main.spec
 ```
+<br>
 
 
 ## Note
 
 - [x] Download from Video URL
 - [x] Download from Playlist URL
-- [ ] Download from CSV
+- [ ] Download from CSV  
+<br>
 
 
 ## License
-
-### dataset-dl
 
 Licensed under either of
 
 - Apache License, Version 2.0 ([LICENSE-APACHE](LICENSE-APACHE) or http://www.apache.org/licenses/LICENSE-2.0)
 - MIT license ([LICENSE-MIT](LICENSE-MIT) or http://opensource.org/licenses/MIT)
 
-at your option.
+at your option.  
+<br>
+
 
 ### Contribution
 
 Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in the work by you, as defined in the Apache-2.0 license, shall be dual licensed as above, without any additional terms or conditions.
 
-### NotoSansJP
+### Redistribution
+
+<details>
+<summary>NotoSansJP</summary>
 
 [SIL OPEN FONT LICENSE Version 1.1](resources/fonts/OFL.txt)
-
 ```
 ├── resources  
 │   ├── fonts  
 │   │   ├── NotoSansJP-Regular.otf  
 │   │   └── OFL.txt
 ```
+</details>
