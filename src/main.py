@@ -71,10 +71,12 @@ def unlock_ui():
 
 def run_url():
     lock_ui()
+    parent_tag = 'url_tab'
     if not (dpg.get_value('save_dir_check') and dpg.get_value('url_check')):
         unlock_ui()
         return
     
+    generate_entire_progress(parent_tag)
     input_url = dpg.get_value('url')
     if extruct.get_playlist_id(input_url) != '':
         video_urls = Playlist(input_url).video_urls
@@ -82,18 +84,32 @@ def run_url():
         video_urls = ['https://www.youtube.com/watch?v=' + extruct.get_video_id(input_url)]
     
     with ThreadPoolExecutor(max_workers=MAXWOREKR) as executor:
-        tasks = [executor.submit(download, video_url, core.NameMode.TITLE, 0, 0) for video_url in video_urls]
+        tasks = [executor.submit(
+                    download,
+                    video_url,
+                    core.NameMode.TITLE,
+                    0,
+                    0,
+                    parent_tag
+                ) for video_url in video_urls]
+        complete_count = 0
+        max_task_count = len(tasks)
         for task in as_completed(tasks):
-            pass
+            complete_count += 1
+            dpg.set_value('entire_bar', complete_count / max_task_count)
+            dpg.set_value('entire_text', f'Completed: {complete_count:>7} / {max_task_count}')
+    dpg.delete_item('entire_group')
     unlock_ui()
 
 
 def run_csv():
     lock_ui()
+    parent_tag = 'csv_tab'
     if not (dpg.get_value('save_dir_check') and dpg.get_value('csv_path_check')):
         unlock_ui()
         return
     
+    generate_entire_progress(parent_tag)
     with open(dpg.get_value('csv_path'), 'r', encoding='utf-8') as f,\
                  ThreadPoolExecutor(max_workers=MAXWOREKR) as executor:
         reader = csv.reader(f)
@@ -107,11 +123,24 @@ def run_csv():
                     video_url,
                     core.NameMode.ID,
                     int(float(row[1])),
-                    int(float(row[2]))
+                    int(float(row[2])),
+                    parent_tag
                 ))
-            
+        
+        complete_count = 0
+        max_task_count = len(tasks)
         for task in as_completed(tasks):
-            pass
+            complete_count += 1
+            dpg.set_value('entire_bar', complete_count / max_task_count)
+            dpg.set_value('entire_text', f'Completed: {complete_count:>7} / {max_task_count}')
+    dpg.delete_item('entire_group')
+    unlock_ui()
+
+
+def generate_entire_progress(parent_tag: str):
+    dpg.add_group(tag='entire_group', parent=parent_tag, horizontal=True)
+    dpg.add_progress_bar(tag='entire_bar', parent='entire_group')
+    dpg.add_text('Downloading...', tag=f'entire_text', parent=f'entire_group')
 
 
 def set_progress(stream, chunk, bytes_remaining):
@@ -119,7 +148,7 @@ def set_progress(stream, chunk, bytes_remaining):
     dpg.set_value(stream_id, 1 - bytes_remaining / stream.filesize)
 
 
-def download(video_url: str, naming: core.NameMode, start_time: int, end_time: int):
+def download(video_url: str, naming: core.NameMode, start_time: int, end_time: int, parent_tag: str):
     yt = YouTube(video_url, on_progress_callback=set_progress)
     quality_mode = core.get_qualitymode(dpg.get_value('quality_radio'))
     
@@ -142,6 +171,7 @@ def download(video_url: str, naming: core.NameMode, start_time: int, end_time: i
                     stream_audio,
                     save_path,
                     request_type,
+                    parent_tag,
                     filename = file_name
                 ))
             for task in as_completed(tasks):
@@ -169,13 +199,15 @@ def download(video_url: str, naming: core.NameMode, start_time: int, end_time: i
                 download_stream,
                 stream_video,
                 TEMPDIR,
-                quality_mode.extension_video
+                quality_mode.extension_video,
+                parent_tag
             ))
         tasks.append(executor.submit(
                 download_stream,
                 stream_audio,
                 TEMPDIR,
-                quality_mode.extension_audio
+                quality_mode.extension_audio,
+                parent_tag
             ))
         for task in as_completed(tasks):
             pass
@@ -238,13 +270,13 @@ def marge_save(save_path: str, video_temp_path: str, audio_temp_path: str,
         print_exc()
 
 
-def download_stream(stream, output_path, extension, filename=None):
+def download_stream(stream, output_path, extension, parent_tag, filename=None):
     stream_id = extruct.file_hash(f'{stream.title}_{stream.filesize}')
     if filename == None:
         filename = f'{stream_id}.{extension}'
     else:
         filename = f'{filename}.{extension}'
-    dpg.add_group(tag=f'{stream_id}_group', parent='url_tab', horizontal=True)
+    dpg.add_group(tag=f'{stream_id}_group', parent=parent_tag, horizontal=True)
     dpg.add_progress_bar(tag=stream_id, parent=f'{stream_id}_group')
     dpg.add_text(stream.title, tag=f'{stream_id}_text', parent=f'{stream_id}_group')
     try:
@@ -300,7 +332,7 @@ with dpg.window(tag='Primary Window'):
                 TAGS.append('url_paste_button')
                 TAGS.append('url_run_button')
             
-        with dpg.tab(label='CSV File'):
+        with dpg.tab(label='CSV File', tag='csv_tab'):
             with dpg.group(horizontal=True):
                 dpg.add_checkbox(default_value=False, enabled=False, tag='csv_path_check')
                 dpg.add_input_text(callback=check_csv_path, tag='csv_path')

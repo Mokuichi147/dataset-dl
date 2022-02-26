@@ -59,11 +59,8 @@ poetry run pyinstaller main.spec
 
 ## Note
 
-- [x] Download from Video URL
-- [x] Download from Playlist URL
-- [x] Download from CSV
-- [ ] Download in wav format
-- [ ] Progress bar for the entire download item  
+- [ ] Download from CSV in various styles
+- [ ] Download in wav format  
 <br>
 
 
