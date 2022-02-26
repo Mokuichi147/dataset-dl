@@ -1,4 +1,5 @@
 from concurrent.futures import ALL_COMPLETED, ThreadPoolExecutor, as_completed
+import csv
 import dearpygui.dearpygui as dpg
 from os.path import isfile, isdir, join
 import pyperclip
@@ -81,10 +82,36 @@ def run_url():
         video_urls = ['https://www.youtube.com/watch?v=' + extruct.get_video_id(input_url)]
     
     with ThreadPoolExecutor(max_workers=MAXWOREKR) as executor:
-        tasks = [executor.submit(download, video_url) for video_url in video_urls]
+        tasks = [executor.submit(download, video_url, core.NameMode.TITLE, 0, 0) for video_url in video_urls]
         for task in as_completed(tasks):
             pass
     unlock_ui()
+
+
+def run_csv():
+    lock_ui()
+    if not (dpg.get_value('save_dir_check') and dpg.get_value('csv_path_check')):
+        unlock_ui()
+        return
+    
+    with open(dpg.get_value('csv_path'), 'r', encoding='utf-8') as f,\
+                 ThreadPoolExecutor(max_workers=MAXWOREKR) as executor:
+        reader = csv.reader(f)
+        tasks = []
+        for row in reader:
+            if row[0].startswith('#'):
+                continue
+            video_url = 'https://www.youtube.com/watch?v=' + row[0]
+            tasks.append(executor.submit(
+                    download,
+                    video_url,
+                    core.NameMode.ID,
+                    int(float(row[1])),
+                    int(float(row[2]))
+                ))
+            
+        for task in as_completed(tasks):
+            pass
 
 
 def set_progress(stream, chunk, bytes_remaining):
@@ -92,7 +119,7 @@ def set_progress(stream, chunk, bytes_remaining):
     dpg.set_value(stream_id, 1 - bytes_remaining / stream.filesize)
 
 
-def download(video_url):
+def download(video_url: str, naming: core.NameMode, start_time: int, end_time: int):
     yt = YouTube(video_url, on_progress_callback=set_progress)
     quality_mode = core.get_qualitymode(dpg.get_value('quality_radio'))
     
@@ -124,17 +151,15 @@ def download(video_url):
         if quality_mode != core.QualityMode.OPUS:
             return
         
-        try:
-            audio_temp_path = f'{join(TEMPDIR, stream_audio_id)}.{request_type}'
-            audio = ffmpeg.input(audio_temp_path)
+        if naming == core.NameMode.ID:
+            audio_id = extruct.get_video_id(video_url)
+            save_path = f"{join(dpg.get_value('save_dir_path'), extruct.file_name(audio_id))}.{quality_mode.extension_audio}"
+        else:
             save_path = f"{join(dpg.get_value('save_dir_path'), extruct.file_name(stream_audio.title))}.{quality_mode.extension_audio}"
-            marge_stream = ffmpeg.output(audio, save_path, acodec='copy').global_args('-loglevel', 'quiet')
-            ffmpeg.run(marge_stream, overwrite_output=True)
-
-            utilio.delete_file(audio_temp_path)
-        except:
-            print_exc()
-        return
+        
+        audio_temp_path = f'{join(TEMPDIR, stream_audio_id)}'
+        auodio_save(quality_mode, save_path, audio_temp_path, start_time, end_time)
+    
     
     stream_video_id = extruct.file_hash(f'{stream_video.title}_{stream_video.filesize}')
     
@@ -158,12 +183,52 @@ def download(video_url):
     dpg.delete_item(f'{stream_video_id}_group')
     dpg.delete_item(f'{stream_audio_id}_group')
     
+    if naming == core.NameMode.ID:
+        stream_id = extruct.get_video_id(video_url)
+        save_path = f"{join(dpg.get_value('save_dir_path'), extruct.file_name(stream_id))}.{quality_mode.extension_video}"
+    else:
+        save_path = f"{join(dpg.get_value('save_dir_path'), extruct.file_name(stream_video.title))}.{quality_mode.extension_video}"
+    
     video_temp_path = f'{join(TEMPDIR, stream_video_id)}.{quality_mode.extension_video}'
     audio_temp_path = f'{join(TEMPDIR, stream_audio_id)}.{quality_mode.extension_audio}'
+    marge_save(save_path, video_temp_path, audio_temp_path, start_time, end_time)
+
+
+def auodio_save(quality_mode: core.QualityMode, save_path: str, audio_temp_path: str, start_time: int, end_time: int):
     try:
-        video = ffmpeg.input(video_temp_path)
-        audio = ffmpeg.input(audio_temp_path)
-        save_path = f"{join(dpg.get_value('save_dir_path'), extruct.file_name(stream_video.title))}.{quality_mode.extension_video}"
+        if quality_mode == core.QualityMode.OPUS:
+            opus_temp_path = f'{audio_temp_path}.{core.get_request_type(quality_mode.extension_audio)}'
+            audio_temp_path = f'{audio_temp_path}.{quality_mode.extension_audio}'
+            
+            opus_audio = ffmpeg.input(opus_temp_path)
+            opus_audio_stream = ffmpeg.output(opus_audio, audio_temp_path, acodec='copy').global_args('-loglevel', 'quiet')
+            ffmpeg.run(opus_audio_stream, overwrite_output=True)
+            utilio.delete_file(opus_temp_path)
+        else:
+            audio_temp_path = f'{audio_temp_path}.{quality_mode.extension_audio}'
+        
+        if start_time < end_time and not (start_time == 0 == end_time): 
+            audio = ffmpeg.input(audio_temp_path, ss=start_time, to=end_time)
+        else:
+            audio = ffmpeg.input(audio_temp_path)
+        
+        audio_stream = ffmpeg.output(audio, save_path, acodec='copy').global_args('-loglevel', 'quiet')
+        ffmpeg.run(audio_stream, overwrite_output=True)
+
+        utilio.delete_file(audio_temp_path)
+    except:
+        print_exc()
+
+
+def marge_save(save_path: str, video_temp_path: str, audio_temp_path: str,
+               start_time: int, end_time: int):
+    try:
+        if start_time < end_time and not (start_time == 0 == end_time): 
+            video = ffmpeg.input(video_temp_path, ss=start_time, to=end_time)
+            audio = ffmpeg.input(audio_temp_path, ss=start_time, to=end_time)
+        else:
+            video = ffmpeg.input(video_temp_path)
+            audio = ffmpeg.input(audio_temp_path)
         marge_stream = ffmpeg.output(video, audio, save_path, vcodec='copy', acodec='copy').global_args('-loglevel', 'quiet')
         ffmpeg.run(marge_stream, overwrite_output=True)
         
@@ -240,8 +305,10 @@ with dpg.window(tag='Primary Window'):
                 dpg.add_checkbox(default_value=False, enabled=False, tag='csv_path_check')
                 dpg.add_input_text(callback=check_csv_path, tag='csv_path')
                 dpg.add_button(label='Select', tag='csv_path_button', callback=load_csv_dialog)
+                dpg.add_button(label='Run', tag='csv_run_button', callback=run_csv)
                 TAGS.append('csv_path')
                 TAGS.append('csv_path_button')
+                TAGS.append('csv_run_button')
 
 
 

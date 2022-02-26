@@ -4,6 +4,11 @@ from typing import Callable, NoReturn, Optional
 from pytube import Stream, YouTube
 
 
+class NameMode(Enum):
+    TITLE = 0
+    ID = 1
+
+
 class Quality:
     def __init__(self,
                 text: str,
