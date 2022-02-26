@@ -37,6 +37,15 @@ Windows 10 or 11
 ```
 poetry run python.exe src/main.py
 ```
+
+<details>
+<summary>If the download fails</summary>
+
+Try the following command.
+```
+poetry update
+```
+</details>
 <br>
 
 
@@ -52,7 +61,9 @@ poetry run pyinstaller main.spec
 
 - [x] Download from Video URL
 - [x] Download from Playlist URL
-- [ ] Download from CSV  
+- [x] Download from CSV
+- [ ] Download in wav format
+- [ ] Progress bar for the entire download item  
 <br>
 
 
