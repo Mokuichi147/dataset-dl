@@ -6,6 +6,7 @@ import pyperclip
 import sys
 from tempfile import gettempdir
 from traceback import print_exc
+from tkinter import Tk
 
 import core
 import extruct
@@ -13,6 +14,14 @@ import utilio
 
 from pytube import YouTube, Playlist
 import ffmpeg
+
+if sys.platform == 'darwin':
+    from tkinter.filedialog import askdirectory, askopenfilename
+    
+    save_dir_dialog_mac = False
+    load_csv_dialog_mac = False
+    tkinter_root = Tk()
+    tkinter_root.withdraw()
 
 
 dpg.create_context()
@@ -27,26 +36,31 @@ TAGS = []
 def check_save_dir():
     dpg.set_value('save_dir_check', isdir(dpg.get_value('save_dir_path')))
 
-
-def save_dir_dialog():
-    save_dir = utilio.ask_directry()
-    if save_dir != '':
-        dpg.set_value('save_dir_path', save_dir)
-    
-    check_save_dir()
+if sys.platform == 'darwin':
+    def save_dir_dialog():
+        global save_dir_dialog_mac
+        save_dir_dialog_mac = True
+        
+    def load_csv_dialog():
+        global load_csv_dialog_mac
+        load_csv_dialog_mac = True
+else:
+    def save_dir_dialog():
+        save_dir = utilio.ask_directry()
+        if save_dir != '':
+            dpg.set_value('save_dir_path', save_dir)
+        check_save_dir()
+        
+    def load_csv_dialog():
+        load_csv = utilio.ask_open_file([('', '.csv')])
+        if load_csv != '':
+            dpg.set_value('csv_path', load_csv)
+        check_csv_path()
 
 
 def check_csv_path():
     csv_path = dpg.get_value('csv_path')
     dpg.set_value('csv_path_check', isfile(csv_path) and csv_path.lower().endswith('.csv'))
-
-
-def load_csv_dialog():
-    load_csv = utilio.ask_open_file([('', '.csv')])
-    if load_csv != '':
-        dpg.set_value('csv_path', load_csv)
-    
-    check_csv_path()
 
 
 def check_url():
@@ -351,7 +365,28 @@ dpg.create_viewport(title=APPNAME, width=1000, height=500, large_icon=icon)
 dpg.setup_dearpygui()
 dpg.show_viewport()
 dpg.set_primary_window('Primary Window', True)
-dpg.start_dearpygui()
+
+if not sys.platform == 'darwin':
+    dpg.start_dearpygui()
+else:
+    while dpg.is_dearpygui_running():
+        dpg.render_dearpygui_frame()
+        
+        if save_dir_dialog_mac:
+            save_dir = askdirectory()
+            if save_dir != '':
+                dpg.set_value('save_dir_path', save_dir)
+            check_save_dir()
+            save_dir_dialog_mac = False
+            
+        elif load_csv_dialog_mac:
+            load_csv = askopenfilename(filetypes=[('', '.csv')])
+            if load_csv != '':
+                dpg.set_value('csv_path', load_csv)
+            check_csv_path()
+            load_csv_dialog_mac = False
+    tkinter_root.destroy()
+
 dpg.destroy_context()
 
 utilio.delete_workdir(TEMPDIR)
