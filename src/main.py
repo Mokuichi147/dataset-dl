@@ -6,7 +6,6 @@ import pyperclip
 import sys
 from tempfile import gettempdir
 from traceback import print_exc
-from tkinter import Tk
 
 import core
 import extruct
@@ -16,6 +15,7 @@ from pytube import YouTube, Playlist
 import ffmpeg
 
 if sys.platform == 'darwin':
+    from tkinter import Tk
     from tkinter.filedialog import askdirectory, askopenfilename
     
     save_dir_dialog_mac = False
