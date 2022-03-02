@@ -23,6 +23,14 @@ pip install --upgrade setuptools
 pip install --upgrade poetry
 poetry install
 ```
+
+<details>
+<summary>When pasting from the clipboard on Linux</summary>
+
+```
+sudo apt install xclip
+```
+</details>
 <br>
 
 
