@@ -1,5 +1,6 @@
 # file
 /poetry.lock
+.python-version
 
 # folder
 /**/__pycache__/
