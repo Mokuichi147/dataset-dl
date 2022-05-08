@@ -60,6 +60,13 @@ class QualityMode(Enum):
             extension_video = '',
             extension_audio = 'mp4'
         )
+    MP3 = Quality(
+            text = 'Audio mp3',
+            is_video = False,
+            is_audio = True,
+            extension_video = '',
+            extension_audio = 'mp3'
+        )
     OPUS = Quality(
             text = 'Audio opus',
             is_video = False,
@@ -106,7 +113,7 @@ def get_qualitymode(text: str) -> Optional[QualityMode]:
 def get_request_type(text: str) -> Optional[str]:
     if text == 'mp4':
         return text
-    elif text == 'opus' or text == 'webm':
+    elif text == 'opus' or text == 'webm' or text == 'mp3':
         return 'webm'
 
 

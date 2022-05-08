@@ -175,8 +175,8 @@ def download(video_url: str, naming: core.NameMode, start_time: int, end_time: i
     
     if not quality_mode.is_video:
         request_type = core.get_request_type(quality_mode.extension_audio)
-        save_path = TEMPDIR if quality_mode == core.QualityMode.OPUS else dpg.get_value('save_dir_path')
-        file_name = None    if quality_mode == core.QualityMode.OPUS else extruct.file_name(stream_audio.title)
+        save_path = TEMPDIR if quality_mode == core.QualityMode.OPUS or quality_mode == core.QualityMode.MP3 else dpg.get_value('save_dir_path')
+        file_name = None    if quality_mode == core.QualityMode.OPUS or quality_mode == core.QualityMode.MP3 else extruct.file_name(stream_audio.title)
         
         with ThreadPoolExecutor(max_workers=MAXWOREKR*2) as executor:
             tasks = []
@@ -192,7 +192,7 @@ def download(video_url: str, naming: core.NameMode, start_time: int, end_time: i
                 pass
         dpg.delete_item(f'{stream_audio_id}_group')
         
-        if quality_mode != core.QualityMode.OPUS:
+        if quality_mode != core.QualityMode.OPUS and quality_mode != core.QualityMode.MP3:
             return
         
         if naming == core.NameMode.ID:
@@ -242,12 +242,15 @@ def download(video_url: str, naming: core.NameMode, start_time: int, end_time: i
 
 def auodio_save(quality_mode: core.QualityMode, save_path: str, audio_temp_path: str, start_time: int, end_time: int):
     try:
-        if quality_mode == core.QualityMode.OPUS:
+        if quality_mode == core.QualityMode.OPUS or quality_mode == core.QualityMode.MP3:
             opus_temp_path = f'{audio_temp_path}.{core.get_request_type(quality_mode.extension_audio)}'
             audio_temp_path = f'{audio_temp_path}.{quality_mode.extension_audio}'
             
             opus_audio = ffmpeg.input(opus_temp_path)
-            opus_audio_stream = ffmpeg.output(opus_audio, audio_temp_path, acodec='copy').global_args('-loglevel', 'quiet')
+            if quality_mode == core.QualityMode.OPUS:
+                opus_audio_stream = ffmpeg.output(opus_audio, audio_temp_path, acodec='copy').global_args('-loglevel', 'quiet')
+            else:
+                opus_audio_stream = ffmpeg.output(opus_audio, audio_temp_path).global_args('-loglevel', 'quiet')
             ffmpeg.run(opus_audio_stream, overwrite_output=True)
             utilio.delete_file(opus_temp_path)
         else:
