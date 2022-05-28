@@ -22,7 +22,7 @@ elif sys.platform == 'darwin':
     icon = join('resources','dataset-dl.icns')
     app_name += '.app'
 
-a = Analysis([join('src','main.py')],
+a = Analysis([join('src','dataset-dl.py')],
              pathex = [getcwd()],
              binaries = [],
              datas = datas,

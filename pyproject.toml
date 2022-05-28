@@ -6,15 +6,18 @@ authors = ["Mokuichi147 <38586357+Mokuichi147@users.noreply.github.com>"]
 license = "MIT OR Apache-2.0"
 
 [tool.poetry.dependencies]
-python = "^3.6,<3.11"
+python = ">=3.7,<3.11"
 pytube = {git = "https://github.com/pytube/pytube"}
-ffmpeg-python = ">=0.2"
-dearpygui = ">=1.1"
-pyperclip = ">=1.8"
+ffmpeg-python = "^0.2"
+dearpygui = "^1.1"
+pyperclip = "^1.8"
 
 [tool.poetry.dev-dependencies]
-pytest = ">=7.0"
-pyinstaller = ">=4.7"
+pytest = "^7.0"
+pyinstaller = "^4.7"
+Nuitka = "^0.8"
+ordered-set = "^4.1"
+zstandard = "^0.17"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

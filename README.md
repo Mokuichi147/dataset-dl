@@ -38,12 +38,12 @@ sudo apt install xclip
 
 Linux or MacOS    
 ```
-poetry run python src/main.py
+poetry run python src/dataset-dl.py
 ```
 
 Windows 10 or 11
 ```
-poetry run python.exe src/main.py
+poetry run python.exe src/dataset-dl.py
 ```
 
 <details>
@@ -60,7 +60,12 @@ poetry update
 ## Build
 
 ```
-poetry run pyinstaller main.spec
+poetry run pyinstaller build.spec
+```
+
+Windows 10 or 11
+```
+poetry run python.exe -m nuitka --onefile --include-data-files=resources/fonts/*=resources/fonts/ src/dataset-dl.py --follow-imports --enable-plugin=tk-inter --windows-icon-from-ico=resources/dataset-dl.ico --windows-disable-console
 ```
 <br>
 

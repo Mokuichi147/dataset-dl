@@ -1,8 +1,12 @@
 # file
 /poetry.lock
 .python-version
+/*.exe
 
 # folder
 /**/__pycache__/
 /build/
 /dist/
+/*.build/
+/*.dist/
+/*.onefile-build/
