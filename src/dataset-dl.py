@@ -3,6 +3,7 @@ import csv
 import dearpygui.dearpygui as dpg
 from os.path import isfile, isdir, join
 import pyperclip
+import subprocess
 import sys
 from tempfile import gettempdir
 from traceback import print_exc
@@ -251,7 +252,17 @@ def auodio_save(quality_mode: core.QualityMode, save_path: str, audio_temp_path:
                 opus_audio_stream = ffmpeg.output(opus_audio, audio_temp_path, acodec='copy').global_args('-loglevel', 'quiet')
             else:
                 opus_audio_stream = ffmpeg.output(opus_audio, audio_temp_path).global_args('-loglevel', 'quiet')
-            ffmpeg.run(opus_audio_stream, overwrite_output=True)
+            
+            startupinfo = None
+            if sys.platform == 'win32':
+                startupinfo = subprocess.STARTUPINFO()
+                startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+            process = subprocess.Popen(ffmpeg.compile(opus_audio_stream, overwrite_output=True), startupinfo=startupinfo)
+            out, err = process.communicate()
+            retcode = process.poll()
+            if retcode:
+                raise ffmpeg.Error('ffmpeg', out, err)
+
             utilio.delete_file(opus_temp_path)
         else:
             audio_temp_path = f'{audio_temp_path}.{quality_mode.extension_audio}'
@@ -262,7 +273,16 @@ def auodio_save(quality_mode: core.QualityMode, save_path: str, audio_temp_path:
             audio = ffmpeg.input(audio_temp_path)
         
         audio_stream = ffmpeg.output(audio, save_path, acodec='copy').global_args('-loglevel', 'quiet')
-        ffmpeg.run(audio_stream, overwrite_output=True)
+        
+        startupinfo = None
+        if sys.platform == 'win32':
+            startupinfo = subprocess.STARTUPINFO()
+            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+        process = subprocess.Popen(ffmpeg.compile(audio_stream, overwrite_output=True), startupinfo=startupinfo)
+        out, err = process.communicate()
+        retcode = process.poll()
+        if retcode:
+            raise ffmpeg.Error('ffmpeg', out, err)
 
         utilio.delete_file(audio_temp_path)
     except:
@@ -279,7 +299,16 @@ def marge_save(save_path: str, video_temp_path: str, audio_temp_path: str,
             video = ffmpeg.input(video_temp_path)
             audio = ffmpeg.input(audio_temp_path)
         marge_stream = ffmpeg.output(video, audio, save_path, vcodec='copy', acodec='copy').global_args('-loglevel', 'quiet')
-        ffmpeg.run(marge_stream, overwrite_output=True)
+        
+        startupinfo = None
+        if sys.platform == 'win32':
+            startupinfo = subprocess.STARTUPINFO()
+            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+        process = subprocess.Popen(ffmpeg.compile(marge_stream, overwrite_output=True), startupinfo=startupinfo)
+        out, err = process.communicate()
+        retcode = process.poll()
+        if retcode:
+            raise ffmpeg.Error('ffmpeg', out, err)
         
         utilio.delete_file(video_temp_path)
         utilio.delete_file(audio_temp_path)
